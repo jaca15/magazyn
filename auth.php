@@ -51,10 +51,13 @@ function csrf_token(): string {
 
 /**
  * Weryfikuje token CSRF.
- * Sprawdza $_POST['csrf_token'] lub nagłówek HTTP X-CSRF-Token.
+ * Sprawdza (w kolejności): $_POST['csrf_token'], nagłówek HTTP X-CSRF-Token,
+ * oraz opcjonalnie tablicę danych (np. zdekodowane JSON body).
  * Zwraca true jeśli token jest poprawny.
+ *
+ * @param array|null $extra Dodatkowa tablica danych do sprawdzenia (np. json_decode output)
  */
-function csrf_verify(): bool {
+function csrf_verify(?array $extra = null): bool {
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
@@ -63,7 +66,8 @@ function csrf_verify(): bool {
         return false;
     }
     $submitted = $_POST['csrf_token']
-        ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+        ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '')
+        ?? ($extra['csrf_token'] ?? '');
     return hash_equals($expected, (string)$submitted);
 }
 

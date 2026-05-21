@@ -7,12 +7,9 @@ header('Content-Type: application/json');
 
 $request = json_decode(file_get_contents('php://input'), true);
 
-// Weryfikacja CSRF: sprawdź w JSON body, $_POST oraz nagłówku HTTP
-$csrfSubmitted = $request['csrf_token']
-    ?? $_POST['csrf_token']
-    ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
-$csrfExpected = $_SESSION['csrf_token'] ?? '';
-if ($csrfExpected === '' || !hash_equals($csrfExpected, (string)$csrfSubmitted)) {
+// Weryfikacja CSRF: csrf_verify() sprawdza $_POST, nagłówek X-CSRF-Token;
+// przekazujemy też zdekodowane JSON body jako dodatkowe źródło tokenu.
+if (!csrf_verify($request ?: [])) {
     echo json_encode(['success' => false, 'message' => 'Nieprawidłowy token CSRF.']);
     exit;
 }

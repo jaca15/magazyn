@@ -22,8 +22,8 @@
         $value = trim(substr($line, $pos + 1));
         // Usuń cudzysłowy jeśli wartość jest w nie opakowana
         if (strlen($value) >= 2
-            && (($value[0] === '"' && $value[-1] === '"')
-                || ($value[0] === "'" && $value[-1] === "'"))
+            && (($value[0] === '"' && substr($value, -1) === '"')
+                || ($value[0] === "'" && substr($value, -1) === "'"))
         ) {
             $value = substr($value, 1, -1);
         }
