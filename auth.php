@@ -33,4 +33,45 @@ function require_admin() {
         exit;
     }
 }
+
+// ===== CSRF =====
+
+/**
+ * Zwraca (i w razie potrzeby generuje) token CSRF dla bieżącej sesji.
+ */
+function csrf_token(): string {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+/**
+ * Weryfikuje token CSRF.
+ * Sprawdza $_POST['csrf_token'] lub nagłówek HTTP X-CSRF-Token.
+ * Zwraca true jeśli token jest poprawny.
+ */
+function csrf_verify(): bool {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    $expected = $_SESSION['csrf_token'] ?? '';
+    if ($expected === '') {
+        return false;
+    }
+    $submitted = $_POST['csrf_token']
+        ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+    return hash_equals($expected, (string)$submitted);
+}
+
+/**
+ * Renderuje ukryte pole formularza z tokenem CSRF.
+ * Użycie: <?= csrf_field() ?>
+ */
+function csrf_field(): string {
+    return '<input type="hidden" name="csrf_token" value="' . htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') . '">';
+}
 ?>

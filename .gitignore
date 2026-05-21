@@ -1,0 +1,9 @@
+# Wrażliwe dane środowiskowe — nigdy nie commituj do repozytorium
+.env
+
+# Logi aplikacji
+/logs/*.log
+
+# Pliki generowane przez aplikację
+/zdjecia/
+/protokoly/

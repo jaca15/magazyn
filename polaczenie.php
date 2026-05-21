@@ -1,25 +1,59 @@
 <?php
-// polaczenie.php - połączenie z bazą danych (TCP na porcie 3307)
-// Dostosuj user/haslo jeśli potrzeba
-$host = '127.0.0.1';   // użyj 127.0.0.1 zamiast 'localhost' aby wymusić TCP
-$port = 3307;         // ustawiony port
-$baza = 'magazyn_sprzetu';
-$user = 'root';
-$haslo = 'J@ckowsk!67'; // ustaw hasło
-$charset = 'utf8mb4';
+// polaczenie.php - połączenie z bazą danych
+// Konfiguracja czytana z pliku .env (patrz .env.example).
+// NIE wpisuj danych dostępowych bezpośrednio w kodzie.
+
+(function () {
+    $envFile = __DIR__ . '/.env';
+    if (!is_file($envFile)) {
+        return;
+    }
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '' || $line[0] === '#') {
+            continue;
+        }
+        $pos = strpos($line, '=');
+        if ($pos === false) {
+            continue;
+        }
+        $key = trim(substr($line, 0, $pos));
+        $value = trim(substr($line, $pos + 1));
+        // Usuń cudzysłowy jeśli wartość jest w nie opakowana
+        if (strlen($value) >= 2
+            && (($value[0] === '"' && $value[-1] === '"')
+                || ($value[0] === "'" && $value[-1] === "'"))
+        ) {
+            $value = substr($value, 1, -1);
+        }
+        if (!array_key_exists($key, $_ENV)) {
+            $_ENV[$key] = $value;
+            putenv("$key=$value");
+        }
+    }
+})();
+
+$host    = $_ENV['DB_HOST']    ?? getenv('DB_HOST')    ?: '127.0.0.1';
+$port    = (int)($_ENV['DB_PORT']    ?? getenv('DB_PORT')    ?: 3307);
+$baza    = $_ENV['DB_NAME']    ?? getenv('DB_NAME')    ?: 'magazyn_sprzetu';
+$user    = $_ENV['DB_USER']    ?? getenv('DB_USER')    ?: 'root';
+$haslo   = $_ENV['DB_PASSWORD'] ?? getenv('DB_PASSWORD') ?: '';
+$charset = $_ENV['DB_CHARSET'] ?? getenv('DB_CHARSET') ?: 'utf8mb4';
+
+$appEnv = strtolower($_ENV['APP_ENV'] ?? getenv('APP_ENV') ?: 'production');
+$debug  = ($appEnv === 'development');
 
 $dsn = "mysql:host={$host};port={$port};dbname={$baza};charset={$charset}";
 
 $options = [
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
 ];
 
 try {
     $pdo = new PDO($dsn, $user, $haslo, $options);
 } catch (PDOException $e) {
-    // W środowisku developerskim pokaż błąd dla diagnostyki; w produkcji ustaw $debug = false
-    $debug = true;
     if ($debug) {
         echo "Błąd połączenia z bazą danych: " . htmlspecialchars($e->getMessage());
     } else {

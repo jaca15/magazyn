@@ -1,4 +1,6 @@
 <?php
+require_once 'auth.php';
+require_login();
 require 'tcpdf/tcpdf.php';
 require 'polaczenie.php';
 

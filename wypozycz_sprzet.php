@@ -147,7 +147,7 @@ function h($v) {
 
             <!-- Uwagi -->
             <label for="uwagi">Uwagi (opcjonalnie):</label>
-            <textarea id="uwagi" name="uwagi"><?= $_POST['uwagi'] ?></textarea>
+            <textarea id="uwagi" name="uwagi"><?= h($_POST['uwagi'] ?? '') ?></textarea>
             
             
             
