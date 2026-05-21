@@ -7,6 +7,7 @@ require_once 'app_settings.php'; // jeśli nie masz - usuń tę linię
 
 function h($v) { return is_callable('app_h') ? app_h($v) : htmlspecialchars($v ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
 $userName = $_SESSION['nazwa_uzytkownika'] ?? ($_SESSION['user']['nazwa_uzytkownika'] ?? 'Gość');
+$csrfToken = csrf_token();
 ?>
 <!doctype html>
 <html lang="pl">
@@ -14,6 +15,7 @@ $userName = $_SESSION['nazwa_uzytkownika'] ?? ($_SESSION['user']['nazwa_uzytkown
   <meta charset="utf-8">
   <title><?= h($APP['name'] ?? 'Aplikacja') ?> — Panel</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="<?= h($csrfToken) ?>">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/dodaj_sprzet.css">
 </head>
@@ -94,6 +96,10 @@ $userName = $_SESSION['nazwa_uzytkownika'] ?? ($_SESSION['user']['nazwa_uzytkown
   function escapeHtml(s) {
     if (!s) return '';
     return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+  function getCsrfToken() {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? meta.getAttribute('content') : '';
   }
 
   // ===== Przenieś modal do body (zapobiega problemom z stacking context) =====
@@ -303,7 +309,7 @@ $userName = $_SESSION['nazwa_uzytkownika'] ?? ($_SESSION['user']['nazwa_uzytkown
         method: method,
         body: formData,
         credentials: 'same-origin',
-        headers: {'X-Requested-With':'XMLHttpRequest'}
+        headers: {'X-Requested-With':'XMLHttpRequest', 'X-CSRF-Token': getCsrfToken()}
       });
 
       const text = await resp.text();
@@ -375,6 +381,7 @@ $userName = $_SESSION['nazwa_uzytkownika'] ?? ($_SESSION['user']['nazwa_uzytkown
 
       const fd = new FormData();
       fd.append('delete_id', id);
+      fd.append('csrf_token', getCsrfToken());
 
       btn.disabled = true;
       const origText = btn.textContent;

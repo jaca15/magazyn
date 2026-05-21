@@ -15,6 +15,16 @@ function is_ajax() : bool {
 
 // --- Obsługa usuwania (jeśli przychodzi POST z delete_id) ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
+    if (!csrf_verify()) {
+        if (is_ajax()) {
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['success' => false, 'errors' => ['Nieprawidłowy token CSRF.']]);
+        } else {
+            http_response_code(403);
+            header('Location: wykaz_sprzetu.php?error=csrf');
+        }
+        exit;
+    }
     $deleteId = (int)$_POST['delete_id'];
     // Pobierz nazwę (do komunikatu) i sprawdź czy istnieje
     $q = $pdo->prepare("SELECT nazwa FROM sprzet WHERE id = :id LIMIT 1");

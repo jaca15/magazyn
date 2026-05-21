@@ -36,6 +36,12 @@ $password_pattern = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $errors = [];
 
+    if (!csrf_verify()) {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['success' => false, 'errors' => ['Nieprawidłowy token CSRF.']]);
+        exit;
+    }
+
     $login = trim((string)($_POST['nazwa_uzytkownika'] ?? ''));
     $name = trim((string)($_POST['imie_nazwisko'] ?? ''));
     $email = trim((string)($_POST['email'] ?? ''));
@@ -163,6 +169,7 @@ try {
   <h2>Edytuj użytkownika</h2>
 
   <form id="userEditForm" method="post" action="user_edit.php" novalidate>
+    <?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= (int)$user['id'] ?>">
 
     <div id="form-feedback" class="form-feedback" aria-live="polite"></div>

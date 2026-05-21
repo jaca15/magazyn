@@ -22,7 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $pattern = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/';
 
-    if ($haslo === '' || $haslo2 === '') {
+    if (!csrf_verify()) {
+        $blad = 'Nieprawidłowe żądanie. Odśwież stronę i spróbuj ponownie.';
+    } elseif ($haslo === '' || $haslo2 === '') {
         $blad = 'Wypełnij oba pola hasła.';
     } elseif ($haslo !== $haslo2) {
         $blad = 'Hasła nie są zgodne.';
@@ -89,6 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <?php endif; ?>
 
       <form method="post" novalidate>
+        <?= csrf_field() ?>
         <div class="row">
           <label for="haslo">Nowe hasło</label>
           <input id="haslo" name="haslo" type="password" required>

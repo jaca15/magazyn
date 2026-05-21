@@ -19,6 +19,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Obsługa zapisu (AJAX POST)
     $errors = [];
 
+    if (!csrf_verify()) {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['success' => false, 'errors' => ['Nieprawidłowy token CSRF.']]);
+        exit;
+    }
+
     // Pobierz i przytnij pola
     $nazwa = trim((string)($_POST['nazwa'] ?? ''));
     $opis = trim((string)($_POST['opis'] ?? ''));
@@ -75,6 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <small class="hint">* - pola wymagane.</small>
 
   <form id="kategoriaAddForm" method="post" action="kategoria_add.php" novalidate>
+    <?= csrf_field() ?>
     <div id="form-feedback" class="form-feedback" aria-live="polite"></div>
 
     <div class="form-row">

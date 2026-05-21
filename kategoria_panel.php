@@ -17,6 +17,10 @@ function is_ajax(): bool {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
     header('Content-Type: application/json; charset=utf-8');
+    if (!csrf_verify()) {
+        echo json_encode(['success' => false, 'errors' => ['Nieprawidłowy token CSRF.']]);
+        exit;
+    }
     $deleteId = (int)$_POST['delete_id'];
 /*
     $currentUserId = (int)($_SESSION['user']['id'] ?? $_SESSION['id'] ?? 0);
@@ -218,6 +222,7 @@ if ($end - $start + 1 < $visiblePages) {
 
         var fd = new FormData();
         fd.append('delete_id', id);
+        fd.append('csrf_token', (document.querySelector('meta[name="csrf-token"]') || {getAttribute: function(){ return ''; }}).getAttribute('content'));
 
         fetch('kategoria_panel.php', {
           method: 'POST',

@@ -15,6 +15,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     respond(false, 'Zły typ żądania. Oczekiwano POST.');
 }
 
+if (!csrf_verify()) {
+    respond(false, 'Nieprawidłowy token CSRF.');
+}
+
 $ids = $_POST['ids'] ?? [];
 $qtys = $_POST['qtys'] ?? [];
 $uwagiZwroty = $_POST['uwagi_zw'] ?? [];

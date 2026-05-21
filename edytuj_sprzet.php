@@ -46,6 +46,16 @@ try {
 
 // Obsługa POST (aktualizacja)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!csrf_verify()) {
+        if (is_ajax()) {
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['success' => false, 'errors' => ['Nieprawidłowy token CSRF.']]);
+        } else {
+            http_response_code(403);
+            echo '<div class="form-error">Nieprawidłowy token CSRF.</div>';
+        }
+        exit;
+    }
     // Pobierz pola
     $nazwa = trim($_POST['nazwa'] ?? '');
     $kategoria_id = isset($_POST['kategoria_id']) && $_POST['kategoria_id'] !== '' ? (int)$_POST['kategoria_id'] : null;
@@ -238,6 +248,7 @@ $val = array_merge($existing, $_POST ?? []);
 ?>
 <!-- Używamy id dodaj-sprzet-form aby przejąć style -->
 <form id="dodaj-sprzet-form" action="edytuj_sprzet.php" method="post" enctype="multipart/form-data">
+  <?= csrf_field() ?>
   <h2 id="modal-title">Edytuj sprzęt — <?= h($existing['nazwa']) ?> (ID: <?= h($id) ?>)</h2>
   <input type="hidden" name="id" value="<?= h($id) ?>">
 

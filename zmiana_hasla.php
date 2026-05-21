@@ -38,7 +38,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $haslo = trim($haslo);
     $haslo2 = trim($haslo2);
 
-    if ($haslo === '' || $haslo2 === '') {
+    if (!csrf_verify()) {
+        $blad = 'Nieprawidłowe żądanie. Odśwież stronę i spróbuj ponownie.';
+    } elseif ($haslo === '' || $haslo2 === '') {
         $blad = 'Wypełnij oba pola hasła.';
     } elseif ($haslo !== $haslo2) {
         $blad = 'Hasła nie są zgodne.';
@@ -105,6 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div id="bladClient" class="form-error" style="display:none; margin-top:8px;"></div>
 
     <form method="post" id="formZmiana" novalidate>
+      <?= csrf_field() ?>
       <div class="form-row">
         <label for="haslo">Nowe hasło <span aria-hidden="true">*</span></label>
         <input id="haslo" name="haslo" type="password" required autocomplete="new-password" class="form-control" />

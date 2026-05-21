@@ -17,6 +17,10 @@ function resp($ok, $msg = '', $extra = []) {
 file_put_contents(__DIR__ . '/logs/debug.log', "Rozpoczęto działanie skryptu wypozycz_zapisz.php\n", FILE_APPEND | LOCK_EX);
 
 // Walidacja danych wejściowych
+if (!csrf_verify()) {
+    resp(false, 'Nieprawidłowy token CSRF.');
+}
+
 $sprzet_id = isset($_POST['sprzet_id']) ? (int)$_POST['sprzet_id'] : 0;
 $ilosc = isset($_POST['ilosc']) ? (int)$_POST['ilosc'] : 0;
 $uzytkownik = isset($_POST['uzytkownik']) ? $_POST['uzytkownik'] : '';

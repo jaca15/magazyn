@@ -21,6 +21,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Obsługa zapisu (AJAX POST)
     $errors = [];
 
+    if (!csrf_verify()) {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['success' => false, 'errors' => ['Nieprawidłowy token CSRF.']]);
+        exit;
+    }
+
     // Pobierz i przytnij pola
     $login = trim((string)($_POST['nazwa_uzytkownika'] ?? ''));
     $name = trim((string)($_POST['imie_nazwisko'] ?? ''));
@@ -97,6 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <h2>Dodaj użytkownika</h2>
 
   <form id="userAddForm" method="post" action="user_add.php" novalidate>
+    <?= csrf_field() ?>
     <div id="form-feedback" class="form-feedback" aria-live="polite"></div>
 
     <div class="form-row">

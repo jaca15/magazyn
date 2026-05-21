@@ -26,7 +26,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $haslo = $_POST['haslo'] ?? '';
     $last_user = $nazwa;
 
-    if ($nazwa === '' || $haslo === '') {
+    if (!csrf_verify()) {
+        $blad = 'Nieprawidłowe żądanie. Odśwież stronę i spróbuj ponownie.';
+    } elseif ($nazwa === '' || $haslo === '') {
         $blad = 'Uzupełnij nazwę użytkownika i hasło.';
     } else {
         try {
@@ -162,6 +164,7 @@ $loginDescription = isset($APP['login_description']) ? (string)$APP['login_descr
         <?php endif; ?>
 
         <form action="logowanie.php" method="post" novalidate>
+          <?= csrf_field() ?>
           <div class="row">
             <label for="nazwa">Nazwa użytkownika</label>
             <input id="nazwa" name="nazwa" type="text" value="<?= h($last_user) ?>" autocomplete="username" required>

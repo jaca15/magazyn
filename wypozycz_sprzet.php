@@ -120,6 +120,7 @@ function h($v) {
         <p><strong><?= h($s['nazwa']) ?></strong> — dostępnych: <?= (int)$s['ilosc'] ?></p>
 
         <form method="post" action="wypozycz_zapisz.php">
+            <?= csrf_field() ?>
             <input type="hidden" name="sprzet_id" value="<?= (int)$s['id'] ?>">
 
             <!-- Ilość do wypożyczenia -->

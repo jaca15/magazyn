@@ -103,7 +103,8 @@ if ($end - $start + 1 < $visiblePages) {
     </div>
 
     <form id="returnsForm">
-     <!-- <table class="sprzet-table"> -->
+      <input type="hidden" name="csrf_token" value="<?= h(csrf_token()) ?>">
+      <!-- <table class="sprzet-table"> -->
           <table class="sprzet-table" style="width:100%; margin:0 auto;">
         <thead>
           <tr>
@@ -237,6 +238,8 @@ if ($end - $start + 1 < $visiblePages) {
           }
 
           var fd = new FormData();
+          var csrfInput = form.querySelector('input[name="csrf_token"]');
+          if (csrfInput) fd.append('csrf_token', csrfInput.value);
           selected.forEach(function(chk){
             var row = chk.closest('tr');
             var id = chk.value;

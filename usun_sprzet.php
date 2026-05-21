@@ -6,6 +6,17 @@ require 'polaczenie.php';
 header('Content-Type: application/json');
 
 $request = json_decode(file_get_contents('php://input'), true);
+
+// Weryfikacja CSRF: sprawdź w JSON body, $_POST oraz nagłówku HTTP
+$csrfSubmitted = $request['csrf_token']
+    ?? $_POST['csrf_token']
+    ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+$csrfExpected = $_SESSION['csrf_token'] ?? '';
+if ($csrfExpected === '' || !hash_equals($csrfExpected, (string)$csrfSubmitted)) {
+    echo json_encode(['success' => false, 'message' => 'Nieprawidłowy token CSRF.']);
+    exit;
+}
+
 $id = isset($request['id']) ? (int)$request['id'] : 0;
 
 if ($id <= 0) {

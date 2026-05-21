@@ -33,6 +33,12 @@ if ($id <= 0) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $errors = [];
 
+    if (!csrf_verify()) {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['success' => false, 'errors' => ['Nieprawidłowy token CSRF.']]);
+        exit;
+    }
+
     // Pobierz i przytnij pola
     $nazwa = trim((string)($_POST['nazwa'] ?? ''));
     $opis = trim((string)($_POST['opis'] ?? ''));
@@ -118,6 +124,7 @@ try {
 
   <form id="magazynEditForm" method="post" action="magazyn_edit.php" novalidate>
        <input type="hidden" name="id" value="<?= (int)$magazyn['id'] ?>">
+    <?= csrf_field() ?>
     <div id="form-feedback" class="form-feedback" aria-live="polite"></div>
 
     <div class="form-row">
