@@ -6,7 +6,7 @@
 // Wymagane: auth.php (require_login()), polaczenie.php (ustawia $pdo)
 
 require 'auth.php';
-require_login();
+require_admin();
 require 'polaczenie.php';
 
 function h($v) { return htmlspecialchars($v ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }

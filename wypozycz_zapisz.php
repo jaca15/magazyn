@@ -13,9 +13,6 @@ function resp($ok, $msg = '', $extra = []) {
     exit;
 }
 
-// Logowanie rozpoczęcia działania skryptu
-file_put_contents(__DIR__ . '/logs/debug.log', "Rozpoczęto działanie skryptu wypozycz_zapisz.php\n", FILE_APPEND | LOCK_EX);
-
 // Walidacja danych wejściowych
 if (!csrf_verify()) {
     resp(false, 'Nieprawidłowy token CSRF.');
@@ -25,6 +22,13 @@ $sprzet_id = isset($_POST['sprzet_id']) ? (int)$_POST['sprzet_id'] : 0;
 $ilosc = isset($_POST['ilosc']) ? (int)$_POST['ilosc'] : 0;
 $uzytkownik = isset($_POST['uzytkownik']) ? $_POST['uzytkownik'] : '';
 $data_zwrotu = !empty($_POST['data_zwrotu']) ? $_POST['data_zwrotu'] : null;
+
+if ($data_zwrotu !== null) {
+    $d = DateTime::createFromFormat('Y-m-d', $data_zwrotu);
+    if (!$d || $d->format('Y-m-d') !== $data_zwrotu) {
+        resp(false, 'Nieprawidłowy format daty zwrotu (oczekiwano RRRR-MM-DD).');
+    }
+}
 $uwagi = trim(isset($_POST['uwagi']) ? $_POST['uwagi'] : '');
 
 if ($sprzet_id <= 0) {
@@ -81,32 +85,10 @@ try {
 
     $pdo->commit();
 
-    // Tworzenie poprawnego linku do pliku PDF
- //   $baseURL = (isset($_SERVER['HTTPS']) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . dirname($_SERVER['REQUEST_URI']) . '/';
- //   $protokol_pdf = "{$baseURL}protokol_wydania.php?id={$lastId}";
-
-
-//---------------------
-
-// Tworzenie poprawnego linku do pliku PDF
-$baseURL = (isset($_SERVER['HTTPS']) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . dirname($_SERVER['REQUEST_URI']) . '/';
-$protokol_pdf = "{$baseURL}protokol_wydania.php?id={$lastId}";
-
-try {
-    // Bezpośrednie uruchomienie pliku protokol_wydania.php, aby PDF został automatycznie wygenerowany
-    $pdfResponse = file_get_contents($protokol_pdf);
-    
-    // Możesz dodać logi weryfikujące odpowiedź
-    file_put_contents(__DIR__ . '/logs/debug.log', "Wykonano generację PDF. URL: {$protokol_pdf}\nOdpowiedź: {$pdfResponse}\n", FILE_APPEND | LOCK_EX);
-} catch (Throwable $e) {
-    // Logowanie w przypadku błędu wygenerowania PDF
-    file_put_contents(__DIR__ . '/logs/error.log', "Błąd podczas uruchamiania pliku protokol_wydania.php: {$e->getMessage()}\n", FILE_APPEND | LOCK_EX);
-    resp(false, 'Wystąpił błąd podczas generacji protokołu PDF.');
-}
-
-//----------------------
-    // Logowanie linku do protokołu
-    file_put_contents(__DIR__ . '/logs/debug.log', "Link do wygenerowanego protokołu: {$protokol_pdf}\n", FILE_APPEND | LOCK_EX);
+    // Zwracanie linku do protokołu (bez wywołania HTTP — klient sam otwiera URL)
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $baseURL = $scheme . '://' . $_SERVER['SERVER_NAME'] . dirname($_SERVER['SCRIPT_NAME']) . '/';
+    $protokol_pdf = $baseURL . 'protokol_wydania.php?id=' . $lastId;
 
     // Zwracanie odpowiedzi JSON
     resp(true, 'Wypożyczono sprzęt pomyślnie.', [

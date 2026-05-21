@@ -177,11 +177,6 @@ $loginDescription = isset($APP['login_description']) ? (string)$APP['login_descr
 
           <div style="display:flex;gap:10px;align-items:center;margin-top:6px;">
             <button class="btn" type="submit">Zaloguj</button>
-            <a href="forgot_password.php" class="btn ghost" style="text-decoration:none;">Nie pamiętasz hasła?</a>
-          </div>
-
-          <div style="margin-top:14px;">
-            <label class="small"><input type="checkbox" name="remember" value="1"> Zapamiętaj mnie</label>
           </div>
         </form>
 

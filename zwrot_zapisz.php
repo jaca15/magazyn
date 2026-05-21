@@ -130,7 +130,7 @@ try {
 
 
     $pdo->commit();
-    respond(true, 'Zwrot zakończony sukcesem.' . $stan, $results);
+    respond(true, 'Zwrot zakończony sukcesem.', $results);
 } catch (Throwable $e) {
     $pdo->rollBack();
     error_log('Błąd podczas obsługi zwrotów: ' . $e->getMessage());

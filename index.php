@@ -8,6 +8,7 @@ require_once 'app_settings.php'; // jeśli nie masz - usuń tę linię
 function h($v) { return is_callable('app_h') ? app_h($v) : htmlspecialchars($v ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
 $userName = $_SESSION['nazwa_uzytkownika'] ?? ($_SESSION['user']['nazwa_uzytkownika'] ?? 'Gość');
 $csrfToken = csrf_token();
+$isAdmin = czy_admin();
 ?>
 <!doctype html>
 <html lang="pl">
@@ -37,6 +38,7 @@ $csrfToken = csrf_token();
   <nav class="sidebar" role="navigation" aria-label="Menu główne">
     <ul>
       <li><button id="sprzet-btn" class="menu-btn" data-target="wykaz_sprzetu.php?page=1">Sprzęt</button></li>
+      <?php if ($isAdmin): ?>
       <li><button id="dodaj-sprzet-btn" class="menu-btn" data-target="dodaj_sprzet.php">Dodaj sprzęt</button></li>
       <li><button id="zwroty-btn" class="menu-btn" data-target="zwrot_panel.php">Zwroty</button></li>
       <li><button id="podmiot-btn" class="menu-btn" data-target="podmiot_panel.php">Podmioty</button></li>
@@ -44,6 +46,7 @@ $csrfToken = csrf_token();
       <li><button id="podmiot-btn" class="menu-btn" data-target="magazyn_panel.php">Magazyny</button></li>
       <li><button id="podmiot-btn" class="menu-btn" data-target="lokalizacja_panel.php">Lokalizacje</button></li>
       <li><button id="uzytkownicy-btn" class="menu-btn" data-target="users_panel.php">Użytkownicy</button></li>
+      <?php endif; ?>
       <!-- Dodaj kolejne przyciski tutaj -->
     </ul>
   </nav>

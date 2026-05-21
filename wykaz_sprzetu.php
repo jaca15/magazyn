@@ -15,6 +15,16 @@ function is_ajax() : bool {
 
 // --- Obsługa usuwania (jeśli przychodzi POST z delete_id) ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
+    if (!czy_admin()) {
+        if (is_ajax()) {
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['success' => false, 'errors' => ['Brak uprawnień administratora.']]);
+        } else {
+            http_response_code(403);
+            echo 'Brak uprawnień.';
+        }
+        exit;
+    }
     if (!csrf_verify()) {
         if (is_ajax()) {
             header('Content-Type: application/json; charset=utf-8');
@@ -347,14 +357,18 @@ $lokalizacjeAll = $pdo->query("SELECT id, nazwa FROM lokalizacje ORDER BY nazwa 
         <td>
           <div class="table-actions">
             <a href="#" class="view open-modal" data-url="podglad_sprzet.php?id=<?= h($row['id']) ?>">Podgląd</a>
+            <?php if (czy_admin()): ?>
             <a href="#" class="edit open-modal" data-url="edytuj_sprzet.php?id=<?= h($row['id']) ?>">Edytuj</a>
+            <?php endif; ?>
             <a href="#" class="edit open-modal" data-url="wypozycz_sprzet.php?id=<?= h($row['id']) ?>">Wypożycz</a>
+            <?php if (czy_admin()): ?>
             <button
               class="delete"
               data-id="<?= h($row['id']) ?>"
               data-name="<?= h($row['nazwa']) ?>"
               type="button"
               title="Usuń">Usuń</button>
+            <?php endif; ?>
           </div>
         </td>
       </tr>

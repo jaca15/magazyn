@@ -1,6 +1,6 @@
 <?php
 require 'auth.php';
-require_login();
+require_admin();
 require 'polaczenie.php';
 
 header('Content-Type: application/json');

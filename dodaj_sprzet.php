@@ -7,7 +7,7 @@
 // - przystosowane do ładowania jako fragment do modala (AJAX) lub bezpośrednio
 
 require 'auth.php';
-require_login();
+require_admin();
 require 'polaczenie.php';
 
 function h($v) {
