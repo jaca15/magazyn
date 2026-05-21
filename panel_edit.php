@@ -168,7 +168,7 @@ try {
 <div id="user-edit-panel" class="content">
   <h2>Edytuj użytkownika</h2>
 
-  <form id="userEditForm" method="post" action="user_edit.php" novalidate>
+  <form id="userEditForm" method="post" action="panel_edit.php" novalidate>
     <?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= (int)$user['id'] ?>">
 

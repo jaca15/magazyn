@@ -67,9 +67,14 @@ function csrf_verify(?array $extra = null): bool {
     if ($expected === '') {
         return false;
     }
-    $submitted = $_POST['csrf_token']
-        ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '')
-        ?? ($extra['csrf_token'] ?? '');
+    $submitted = '';
+    if (!empty($_POST['csrf_token'])) {
+        $submitted = (string)$_POST['csrf_token'];
+    } elseif (!empty($_SERVER['HTTP_X_CSRF_TOKEN'])) {
+        $submitted = (string)$_SERVER['HTTP_X_CSRF_TOKEN'];
+    } elseif (!empty($extra['csrf_token'])) {
+        $submitted = (string)$extra['csrf_token'];
+    }
     return hash_equals($expected, (string)$submitted);
 }
 

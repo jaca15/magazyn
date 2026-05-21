@@ -122,7 +122,7 @@ try {
   <h2>Edytuj magazyn</h2>
   <small class="hint">* - pola wymagane.</small>
 
-  <form id="magazynEditForm" method="post" action="magazyn_edit.php" novalidate>
+  <form id="magazynEditForm" method="post" action="lokalizacja_edit.php" novalidate>
        <input type="hidden" name="id" value="<?= (int)$magazyn['id'] ?>">
     <?= csrf_field() ?>
     <div id="form-feedback" class="form-feedback" aria-live="polite"></div>
