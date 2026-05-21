@@ -3,9 +3,9 @@
 // Dostosuj user/haslo jeśli potrzeba
 $host = '127.0.0.1';   // użyj 127.0.0.1 zamiast 'localhost' aby wymusić TCP
 $port = 3307;         // ustawiony port
-$baza = 'magazyn_sprzetu';
-$user = 'root';
-$haslo = 'J@ckowsk!67'; // ustaw hasło
+$baza = '';
+$user = '';
+$haslo = ''; // ustaw hasło
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host={$host};port={$port};dbname={$baza};charset={$charset}";
