@@ -1,5 +1,5 @@
 <?php
-// logowanie.php - modalne okno logowania korzystające z ustawień w app_settings.php
+// logowanie.php - uproszczone i bardziej odporne okno logowania korzystające z ustawień w app_settings.php
 require 'polaczenie.php';
 session_start();
 require_once 'app_settings.php';
@@ -89,43 +89,138 @@ $loginDescription = isset($APP['login_description']) ? (string)$APP['login_descr
       --error:#b00020;
       --border:#e5e7eb;
     }
-    html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--accent-2);}
-    .page-center{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;}
-    .login-modal { width:100%; max-width:920px; display:flex; gap:0; align-items:stretch; background:var(--panel); border-radius:12px; box-shadow:0 10px 40px rgba(2,6,23,0.12); overflow:hidden; border:1px solid var(--border); }
-    .login-left { flex:1 1 420px; padding:28px 26px; background:linear-gradient(180deg,#fafafa,#f7f7f7); display:flex;flex-direction:column; justify-content:center; }
-    .login-right { width:420px; max-width:420px; padding:28px 26px; display:flex;flex-direction:column; justify-content:center; border-left:1px solid var(--border); }
-    .brand { font-weight:700; font-size:1.1rem; color:var(--accent-2); margin-bottom:8px; }
-    .tag { color:var(--muted); font-size:0.95rem; margin-bottom:18px; }
-    .illustration { width:100%; height:auto; max-height:260px; display:block; margin:6px 0 14px 0; opacity:0.95; object-fit:contain; }
-    .desc { color:var(--muted); font-size:0.9rem; line-height:1.4; }
-    form label { display:block; font-size:0.9rem; color:var(--muted); margin-bottom:6px; }
-    input[type=text], input[type=password], input[type=email] { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--border); background:#fff; box-sizing:border-box; font-size:0.95rem; color:var(--accent-2); }
-    .row { margin-bottom:12px; }
-    .btn { display:inline-block; padding:10px 14px; background:#111827; color:#fff; border-radius:8px; border:0; cursor:pointer; font-weight:600; }
-    .btn.ghost { background:transparent; color:var(--accent-2); border:1px solid var(--border); }
-    .muted { color:var(--muted); font-size:0.9rem; }
-    .error { color:var(--error); margin-bottom:10px; font-weight:600; }
-    .small { font-size:0.85rem; color:var(--muted); }
-    .foot { margin-top:12px; font-size:0.85rem; color:var(--muted); }
-    @media (max-width:720px){
-      .login-modal{flex-direction:column;max-width:520px;}
-      .login-right{width:100%;border-left:none;border-top:1px solid var(--border);}
+    *{box-sizing:border-box;}
+    html,body{
+      height:100%;
+      margin:0;
+      font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--accent-2);
+    }
+    body{
+      min-height:100vh;
+    }
+    .page-center{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
+    .login-card{
+      width:100%;
+      max-width:520px;
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:14px;
+      box-shadow:0 10px 40px rgba(2,6,23,0.12);
+      padding:28px;
+    }
+    .brand{
+      font-weight:700;
+      font-size:1.35rem;
+      margin:0 0 6px 0;
+    }
+    .tag{
+      color:var(--muted);
+      font-size:0.95rem;
+      margin:0 0 18px 0;
+    }
+    .illustration-wrap{
+      margin:0 0 18px 0;
+      text-align:center;
+    }
+    .illustration{
+      width:100%;
+      max-width:320px;
+      height:auto;
+      max-height:220px;
+      display:inline-block;
+      object-fit:contain;
+    }
+    .desc{
+      color:var(--muted);
+      font-size:0.92rem;
+      line-height:1.5;
+      margin:0 0 18px 0;
+    }
+    h2{
+      margin:0 0 14px 0;
+      font-size:1.4rem;
+    }
+    form label{
+      display:block;
+      font-size:0.92rem;
+      color:var(--muted);
+      margin-bottom:6px;
+    }
+    input[type=text], input[type=password]{
+      width:100%;
+      padding:12px 14px;
+      border-radius:8px;
+      border:1px solid var(--border);
+      background:#fff;
+      font-size:0.98rem;
+      color:var(--accent-2);
+    }
+    .row{
+      margin-bottom:14px;
+    }
+    .actions{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin-top:10px;
+    }
+    .btn{
+      display:inline-block;
+      width:100%;
+      padding:12px 14px;
+      background:#111827;
+      color:#fff;
+      border-radius:8px;
+      border:0;
+      cursor:pointer;
+      font-weight:600;
+      text-align:center;
+      text-decoration:none;
+    }
+    .btn.ghost{
+      background:#fff;
+      color:var(--accent-2);
+      border:1px solid var(--border);
+    }
+    .muted{
+      color:var(--muted);
+      font-size:0.9rem;
+    }
+    .error{
+      color:var(--error);
+      margin-bottom:12px;
+      font-weight:600;
+    }
+    .small{
+      font-size:0.85rem;
+      color:var(--muted);
+    }
+    .foot{
+      margin-top:18px;
+      font-size:0.85rem;
+      color:var(--muted);
+      text-align:center;
     }
   </style>
 </head>
 <body>
   <div class="page-center">
-    <div class="login-modal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
-      <div class="login-left" aria-hidden="false">
-        <div>
-          <div class="brand"><?= h($APP['name']) ?></div>
-          <div class="tag">System zarządzania zasobami — autor: <?= h($APP['author']) ?></div>
-        </div>
+    <div class="login-card" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+      <div class="brand"><?= h($APP['name']) ?></div>
+      <div class="tag">System zarządzania zasobami — autor: <?= h($APP['author']) ?></div>
 
+      <div class="illustration-wrap">
         <?php if ($loginImageSrc): ?>
           <img class="illustration" src="<?= h($loginImageSrc) ?>" alt="Grafika logowania">
         <?php else: ?>
-          <!-- fallback SVG -->
           <svg class="illustration" viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
             <defs>
               <linearGradient id="g1" x1="0" x2="1" y1="0" y2="1">
@@ -147,43 +242,43 @@ $loginDescription = isset($APP['login_description']) ? (string)$APP['login_descr
             </g>
           </svg>
         <?php endif; ?>
+      </div>
 
+      <?php if ($loginDescription !== ''): ?>
         <div class="desc">
           <?= nl2br(h($loginDescription)) ?>
         </div>
-        <div class="foot">Masz problem z dostępem? Skontaktuj się z administratorem.</div>
-      </div>
+      <?php endif; ?>
 
-      <div class="login-right">
-        <h2 id="loginTitle" style="margin:0 0 10px 0;">Logowanie</h2>
+      <h2 id="loginTitle">Logowanie</h2>
 
-        <?php if ($blad): ?>
-          <div class="error" role="alert"><?= h($blad) ?></div>
-        <?php endif; ?>
+      <?php if ($blad): ?>
+        <div class="error" role="alert"><?= h($blad) ?></div>
+      <?php endif; ?>
 
-        <form action="logowanie.php" method="post" novalidate>
-          <div class="row">
-            <label for="nazwa">Nazwa użytkownika</label>
-            <input id="nazwa" name="nazwa" type="text" value="<?= h($last_user) ?>" autocomplete="username" required>
-          </div>
+      <form action="logowanie.php" method="post" novalidate>
+        <div class="row">
+          <label for="nazwa">Nazwa użytkownika</label>
+          <input id="nazwa" name="nazwa" type="text" value="<?= h($last_user) ?>" autocomplete="username" required>
+        </div>
 
-          <div class="row">
-            <label for="haslo">Hasło</label>
-            <input id="haslo" name="haslo" type="password" autocomplete="current-password" required>
-          </div>
+        <div class="row">
+          <label for="haslo">Hasło</label>
+          <input id="haslo" name="haslo" type="password" autocomplete="current-password" required>
+        </div>
 
-          <div style="display:flex;gap:10px;align-items:center;margin-top:6px;">
-            <button class="btn" type="submit">Zaloguj</button>
-            <a href="forgot_password.php" class="btn ghost" style="text-decoration:none;">Nie pamiętasz hasła?</a>
-          </div>
+        <div class="actions">
+          <button class="btn" type="submit">Zaloguj</button>
+          <a href="forgot_password.php" class="btn ghost">Nie pamiętasz hasła?</a>
+        </div>
 
-          <div style="margin-top:14px;">
-            <label class="small"><input type="checkbox" name="remember" value="1"> Zapamiętaj mnie</label>
-          </div>
-        </form>
+        <div style="margin-top:14px;">
+          <label class="small"><input type="checkbox" name="remember" value="1"> Zapamiętaj mnie</label>
+        </div>
+      </form>
 
-        <p style="margin-top:12px;" class="muted">Wersja aplikacji: <?= h($APP['version']) ?></p>
-      </div>
+      <p style="margin-top:14px;" class="muted">Wersja aplikacji: <?= h($APP['version']) ?></p>
+      <div class="foot">Masz problem z dostępem? Skontaktuj się z administratorem.</div>
     </div>
   </div>
 
