@@ -35,14 +35,21 @@
 })();
 
 $host    = $_ENV['DB_HOST']    ?? getenv('DB_HOST')    ?: '127.0.0.1';
-$port    = (int)($_ENV['DB_PORT']    ?? getenv('DB_PORT')    ?: 3307);
+$port    = (int)(($_ENV['DB_PORT']    ?? getenv('DB_PORT'))    ?: 3307);
 $baza    = $_ENV['DB_NAME']    ?? getenv('DB_NAME')    ?: 'magazyn_sprzetu';
 $user    = $_ENV['DB_USER']    ?? getenv('DB_USER')    ?: 'root';
-$haslo   = $_ENV['DB_PASSWORD'] ?? getenv('DB_PASSWORD') ?: '';
+$haslo   = ($_ENV['DB_PASSWORD'] ?? getenv('DB_PASSWORD')) ?: '';
 $charset = $_ENV['DB_CHARSET'] ?? getenv('DB_CHARSET') ?: 'utf8mb4';
 
-$appEnv = strtolower($_ENV['APP_ENV'] ?? getenv('APP_ENV') ?: 'production');
+$appEnv = strtolower(($_ENV['APP_ENV'] ?? getenv('APP_ENV')) ?: 'production');
 $debug  = ($appEnv === 'development');
+
+// W trybie produkcyjnym blokuj start jeśli hasło DB jest puste (domyślne root bez hasła)
+if (!$debug && $haslo === '') {
+    error_log('polaczenie.php: DB_PASSWORD nie jest ustawiony — ustaw zmienną w pliku .env');
+    echo 'Błąd konfiguracji serwera.';
+    exit;
+}
 
 $dsn = "mysql:host={$host};port={$port};dbname={$baza};charset={$charset}";
 
