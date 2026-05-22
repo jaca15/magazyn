@@ -1,16 +1,26 @@
 <?php
 // logowanie.php - uproszczone i bardziej odporne okno logowania korzystające z ustawień w app_settings.php
 require 'polaczenie.php';
-session_start();
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 require_once 'app_settings.php';
 
 function h($v){ return htmlspecialchars($v === null ? '' : $v, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
+
+// Jeśli użytkownik jest już zalogowany, przekieruj do panelu
+if (!empty($_SESSION['user'])) {
+    header('Location: index.php');
+    exit;
+}
 
 // Jeśli nie ma żadnego admina - przekieruj do ustawienia hasła admin
 try {
     $stmt = $pdo->query("SELECT COUNT(*) AS cnt FROM uzytkownicy WHERE rola = 'admin'");
     $row = $stmt->fetch();
-    if (!$row || $row['cnt'] == 0) {
+    if (!$row || (int)$row['cnt'] === 0) {
         header('Location: ustaw_haslo_admin.php');
         exit;
     }
@@ -23,7 +33,7 @@ $last_user = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nazwa = trim((string)($_POST['nazwa'] ?? ''));
-    $haslo = $_POST['haslo'] ?? '';
+    $haslo = (string)($_POST['haslo'] ?? '');
     $last_user = $nazwa;
 
     if ($nazwa === '' || $haslo === '') {
@@ -33,6 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare("SELECT id, nazwa_uzytkownika, haslo_hash, rola, wymus_zmiany_hasla FROM uzytkownicy WHERE nazwa_uzytkownika = ? LIMIT 1");
             $stmt->execute([$nazwa]);
             $u = $stmt->fetch(PDO::FETCH_ASSOC);
+
             if ($u && !empty($u['haslo_hash']) && password_verify($haslo, $u['haslo_hash'])) {
                 session_regenerate_id(true);
 
@@ -55,9 +66,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 header('Location: index.php');
                 exit;
-            } else {
-                $blad = 'Nieprawidłowa nazwa użytkownika lub hasło.';
             }
+
+            $blad = 'Nieprawidłowa nazwa użytkownika lub hasło.';
         } catch (Throwable $e) {
             error_log('logowanie.php: ' . $e->getMessage());
             $blad = 'Błąd serwera przy logowaniu.';
@@ -65,20 +76,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Przygotuj ścieżkę obrazu logowania (jeśli ustawiona)
-$loginImageRel = (isset($APP['login_image']) && $APP['login_image']) ? $APP['login_image'] : '';
+$appName = $APP['name'] ?? 'Aplikacja';
+$appAuthor = $APP['author'] ?? '';
+$appVersion = $APP['version'] ?? '';
+$loginImageRel = !empty($APP['login_image']) ? $APP['login_image'] : '';
 $loginImageFull = $loginImageRel ? __DIR__ . DIRECTORY_SEPARATOR . $loginImageRel : '';
 $loginImageExists = $loginImageFull ? file_exists($loginImageFull) : false;
 $loginImageSrc = $loginImageExists ? ($loginImageRel . '?t=' . @filemtime($loginImageFull)) : '';
-
-// Pobierz opis z ustawień (bezpiecznie)
 $loginDescription = isset($APP['login_description']) ? (string)$APP['login_description'] : '';
 ?>
 <!doctype html>
 <html lang="pl">
 <head>
   <meta charset="utf-8">
-  <title><?= h($APP['name']) ?> — Logowanie</title>
+  <title><?= h($appName) ?> — Logowanie</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
     :root{
@@ -185,11 +196,6 @@ $loginDescription = isset($APP['login_description']) ? (string)$APP['login_descr
       text-align:center;
       text-decoration:none;
     }
-    .btn.ghost{
-      background:#fff;
-      color:var(--accent-2);
-      border:1px solid var(--border);
-    }
     .muted{
       color:var(--muted);
       font-size:0.9rem;
@@ -198,10 +204,6 @@ $loginDescription = isset($APP['login_description']) ? (string)$APP['login_descr
       color:var(--error);
       margin-bottom:12px;
       font-weight:600;
-    }
-    .small{
-      font-size:0.85rem;
-      color:var(--muted);
     }
     .foot{
       margin-top:18px;
@@ -214,8 +216,8 @@ $loginDescription = isset($APP['login_description']) ? (string)$APP['login_descr
 <body>
   <div class="page-center">
     <div class="login-card" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
-      <div class="brand"><?= h($APP['name']) ?></div>
-      <div class="tag">System zarządzania zasobami — autor: <?= h($APP['author']) ?></div>
+      <div class="brand"><?= h($appName) ?></div>
+      <div class="tag">System zarządzania zasobami — autor: <?= h($appAuthor) ?></div>
 
       <div class="illustration-wrap">
         <?php if ($loginImageSrc): ?>
@@ -269,15 +271,10 @@ $loginDescription = isset($APP['login_description']) ? (string)$APP['login_descr
 
         <div class="actions">
           <button class="btn" type="submit">Zaloguj</button>
-          <a href="forgot_password.php" class="btn ghost">Nie pamiętasz hasła?</a>
-        </div>
-
-        <div style="margin-top:14px;">
-          <label class="small"><input type="checkbox" name="remember" value="1"> Zapamiętaj mnie</label>
         </div>
       </form>
 
-      <p style="margin-top:14px;" class="muted">Wersja aplikacji: <?= h($APP['version']) ?></p>
+      <p style="margin-top:14px;" class="muted">Wersja aplikacji: <?= h($appVersion) ?></p>
       <div class="foot">Masz problem z dostępem? Skontaktuj się z administratorem.</div>
     </div>
   </div>
