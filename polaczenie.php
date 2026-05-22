@@ -9,7 +9,7 @@ $haslo = getenv('DB_PASSWORD') ?: getenv('MYSQL_PASSWORD') ?: ''; // ustaw hasł
 $charset = 'utf8mb4';
 
 if ($baza === '') {
-    echo "Błąd konfiguracji bazy danych: brak nazwy bazy (DB_NAME/MYSQL_DATABASE).";
+    echo "Błąd konfiguracji bazy danych: brak nazwy bazy. Ustaw DB_NAME lub MYSQL_DATABASE (opcjonalnie także DB_HOST, DB_PORT, DB_USER, DB_PASSWORD).";
     exit;
 }
 
