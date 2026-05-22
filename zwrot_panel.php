@@ -1,7 +1,8 @@
 <?php
 // zwrot_panel.php - fragment panelu zwrotów z paginacją (aktualizacja: reload fragmentu zamiast pełnej strony)
 require_once 'auth.php';
-require_admin();
+require_login();
+require_permission('return_equipment', 'Brak uprawnień do przyjmowania zwrotów.');
 require 'polaczenie.php';
 
 function h($v) { return htmlspecialchars($v ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }

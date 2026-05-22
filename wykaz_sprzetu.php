@@ -3,6 +3,10 @@ require 'auth.php';
 require_login();
 require 'polaczenie.php';
 
+$canManageEquipment = ma_uprawnienie('manage_equipment');
+$canIssueEquipment = ma_uprawnienie('issue_equipment');
+$canDeleteEquipment = ma_uprawnienie('delete_equipment');
+
 function h($v) {
     return htmlspecialchars($v ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
@@ -15,6 +19,9 @@ function is_ajax() : bool {
 
 // --- Obsługa usuwania (jeśli przychodzi POST z delete_id) ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
+    if (!$canDeleteEquipment) {
+        deny_access('Brak uprawnień do usuwania sprzętu.');
+    }
     $deleteId = (int)$_POST['delete_id'];
     // Pobierz nazwę (do komunikatu) i sprawdź czy istnieje
     $q = $pdo->prepare("SELECT nazwa FROM sprzet WHERE id = :id LIMIT 1");
@@ -337,14 +344,20 @@ $lokalizacjeAll = $pdo->query("SELECT id, nazwa FROM lokalizacje ORDER BY nazwa 
         <td>
           <div class="table-actions">
             <a href="#" class="view open-modal" data-url="podglad_sprzet.php?id=<?= h($row['id']) ?>">Podgląd</a>
+            <?php if ($canManageEquipment): ?>
             <a href="#" class="edit open-modal" data-url="edytuj_sprzet.php?id=<?= h($row['id']) ?>">Edytuj</a>
+            <?php endif; ?>
+            <?php if ($canIssueEquipment): ?>
             <a href="#" class="edit open-modal" data-url="wypozycz_sprzet.php?id=<?= h($row['id']) ?>">Wypożycz</a>
+            <?php endif; ?>
+            <?php if ($canDeleteEquipment): ?>
             <button
               class="delete"
               data-id="<?= h($row['id']) ?>"
               data-name="<?= h($row['nazwa']) ?>"
               type="button"
               title="Usuń">Usuń</button>
+            <?php endif; ?>
           </div>
         </td>
       </tr>

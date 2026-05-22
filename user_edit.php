@@ -1,9 +1,7 @@
 <?php
 // user_edit.php - formularz edycji użytkownika + zapis (obsługa AJAX/modal i bezpośrednio)
-// Rozszerzenie: dodana sekcja zmiany hasła (opcjonalna) oraz walidacja po stronie serwera.
-// Wymagane: auth.php (require_admin()), polaczenie.php ($pdo)
 require_once 'auth.php';
-require_admin();
+require_login();
 require 'polaczenie.php';
 
 function h($v) { return htmlspecialchars($v ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
@@ -14,46 +12,67 @@ function is_ajax(): bool {
     return false;
 }
 
-// Dozwolone role (zgodne z definicją bazy)
 $allowed_roles = ['admin', 'gosc', 'magazynier'];
+$password_pattern = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/';
 
-// Pobierz id użytkownika (GET lub POST)
+$currentUserId = current_user_id();
+$isAdmin = czy_admin();
+if ($currentUserId <= 0) {
+    deny_access('Brak aktywnej sesji użytkownika.');
+}
+
 $id = (int)($_GET['id'] ?? $_POST['id'] ?? 0);
 if ($id <= 0) {
-    if (is_ajax()) {
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(['success' => false, 'errors' => ['Nieprawidłowy identyfikator użytkownika.']]);
+    $id = $currentUserId;
+}
+
+if (!can_edit_user_profile($id)) {
+    deny_access('Możesz edytować wyłącznie własny profil.');
+}
+
+try {
+    $q = $pdo->prepare("SELECT id, nazwa_uzytkownika, imie_nazwisko, email, rola, wymus_zmiany_hasla FROM uzytkownicy WHERE id = :id LIMIT 1");
+    $q->execute([':id' => $id]);
+    $user = $q->fetch(PDO::FETCH_ASSOC);
+    if (!$user) {
+        if (is_ajax()) {
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['success' => false, 'errors' => ['Użytkownik nie istnieje.']]);
+            exit;
+        }
+        header('Location: index.php');
         exit;
     }
-    header('Location: users_panel.php');
+} catch (Throwable $e) {
+    error_log('user_edit fetch error: ' . $e->getMessage());
+    if (is_ajax()) {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['success' => false, 'errors' => ['Błąd serwera.']]);
+        exit;
+    }
+    header('Location: index.php');
     exit;
 }
 
-// Wzorzec hasła (ten sam co w zmiana_hasla.php)
-$password_pattern = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/';
-
-// Obsługa POST (zapis zmian)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $errors = [];
 
-    $login = trim((string)($_POST['nazwa_uzytkownika'] ?? ''));
+    $login = $isAdmin ? trim((string)($_POST['nazwa_uzytkownika'] ?? '')) : (string)$user['nazwa_uzytkownika'];
     $name = trim((string)($_POST['imie_nazwisko'] ?? ''));
     $email = trim((string)($_POST['email'] ?? ''));
-    $role = trim((string)($_POST['rola'] ?? 'magazynier'));
-    $force_change = isset($_POST['wymus_zmiany_hasla']) && ($_POST['wymus_zmiany_hasla'] == '1' || $_POST['wymus_zmiany_hasla'] === 'on') ? 1 : 0;
+    $role = $isAdmin ? trim((string)($_POST['rola'] ?? 'magazynier')) : (string)$user['rola'];
+    $force_change = $isAdmin
+        ? (isset($_POST['wymus_zmiany_hasla']) && ($_POST['wymus_zmiany_hasla'] == '1' || $_POST['wymus_zmiany_hasla'] === 'on') ? 1 : 0)
+        : (int)$user['wymus_zmiany_hasla'];
 
-    // Hasło opcjonalne (jeśli admin chce ustawić nowe hasło)
-    $newPassword = (string)($_POST['new_password'] ?? '');
-    $newPasswordConfirm = (string)($_POST['new_password_confirm'] ?? '');
-    $newPassword = trim($newPassword);
-    $newPasswordConfirm = trim($newPasswordConfirm);
+    $newPassword = trim((string)($_POST['new_password'] ?? ''));
+    $newPasswordConfirm = trim((string)($_POST['new_password_confirm'] ?? ''));
     $passwordProvided = $newPassword !== '' || $newPasswordConfirm !== '';
 
-    if ($login === '') $errors[] = 'Login (nazwa użytkownika) jest wymagany.';
+    if ($isAdmin && $login === '') $errors[] = 'Login (nazwa użytkownika) jest wymagany.';
     if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Nieprawidłowy adres e-mail.';
-    if (!in_array($role, $allowed_roles, true)) $errors[] = 'Nieprawidłowa rola użytkownika.';
+    if ($isAdmin && !in_array($role, $allowed_roles, true)) $errors[] = 'Nieprawidłowa rola użytkownika.';
 
-    // Jeśli podano nowe hasło — sprawdź zgodność i wzorzec
     if ($passwordProvided) {
         if ($newPassword === '' || $newPasswordConfirm === '') {
             $errors[] = 'Oba pola nowego hasła są wymagane.';
@@ -64,8 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // Unikalność loginu i e-maila (wykluczamy aktualnego użytkownika)
-    if (empty($errors)) {
+    if ($isAdmin && empty($errors)) {
         try {
             $stmt = $pdo->prepare("SELECT COUNT(*) FROM uzytkownicy WHERE nazwa_uzytkownika = :login AND id != :id");
             $stmt->execute([':login' => $login, ':id' => $id]);
@@ -93,20 +111,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Przygotuj dynamiczny UPDATE - jeśli podano hasło, dołączamy kolumnę haslo_hash
     $fields = [
-        'nazwa_uzytkownika' => $login,
         'imie_nazwisko' => $name !== '' ? $name : null,
         'email' => $email !== '' ? $email : null,
-        'rola' => $role,
-        'wymus_zmiany_hasla' => $force_change ? 1 : 0
     ];
+
+    if ($isAdmin) {
+        $fields['nazwa_uzytkownika'] = $login;
+        $fields['rola'] = $role;
+        $fields['wymus_zmiany_hasla'] = $force_change ? 1 : 0;
+    }
 
     if ($passwordProvided) {
         $fields['haslo_hash'] = password_hash($newPassword, PASSWORD_DEFAULT);
     }
 
-    // Zbuduj SQL dynamicznie
     $setParts = [];
     $params = [];
     foreach ($fields as $col => $val) {
@@ -114,17 +133,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $params[":$col"] = $val;
     }
     $params[':id'] = $id;
-    $sql = "UPDATE uzytkownicy SET " . implode(', ', $setParts) . " WHERE id = :id";
 
     try {
-        $upd = $pdo->prepare($sql);
+        $upd = $pdo->prepare("UPDATE uzytkownicy SET " . implode(', ', $setParts) . " WHERE id = :id");
         $upd->execute($params);
 
-        // Przygotuj odpowiedź
-        $resp = ['success' => true, 'message' => 'Zapisano zmiany.'];
-        if ($passwordProvided) $resp['password_changed'] = true;
+        if ($id === $currentUserId) {
+            if ($isAdmin && isset($fields['nazwa_uzytkownika'])) {
+                $_SESSION['nazwa_uzytkownika'] = $fields['nazwa_uzytkownika'];
+                $_SESSION['user']['nazwa_uzytkownika'] = $fields['nazwa_uzytkownika'];
+            }
+            if ($isAdmin && isset($fields['rola'])) {
+                $_SESSION['rola'] = $fields['rola'];
+                $_SESSION['user']['rola'] = $fields['rola'];
+            }
+        }
+
+        $redirectUrl = ($isAdmin && $id !== $currentUserId) ? 'users_panel.php' : 'user_edit.php';
         header('Content-Type: application/json; charset=utf-8');
-        echo json_encode($resp);
+        echo json_encode(['success' => true, 'message' => 'Zapisano zmiany.', 'redirect_url' => $redirectUrl]);
         exit;
     } catch (Throwable $e) {
         error_log('user_edit save error: ' . $e->getMessage());
@@ -134,33 +161,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Jeśli nie POST — pobierz dane użytkownika i wyświetl formularz
-try {
-    $q = $pdo->prepare("SELECT id, nazwa_uzytkownika, imie_nazwisko, email, rola, wymus_zmiany_hasla FROM uzytkownicy WHERE id = :id LIMIT 1");
-    $q->execute([':id' => $id]);
-    $user = $q->fetch(PDO::FETCH_ASSOC);
-    if (!$user) {
-        if (is_ajax()) {
-            header('Content-Type: application/json; charset=utf-8');
-            echo json_encode(['success' => false, 'errors' => ['Użytkownik nie istnieje.']]);
-            exit;
-        }
-        header('Location: users_panel.php');
-        exit;
-    }
-} catch (Throwable $e) {
-    error_log('user_edit fetch error: ' . $e->getMessage());
-    if (is_ajax()) {
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(['success' => false, 'errors' => ['Błąd serwera.']]);
-        exit;
-    }
-    header('Location: users_panel.php');
-    exit;
-}
+$isOwnProfile = $id === $currentUserId;
+$canManageAccount = $isAdmin;
+$panelTitle = ($isOwnProfile || !$isAdmin) ? 'Mój profil' : 'Edytuj użytkownika';
 ?>
 <div id="user-edit-panel" class="content">
-  <h2>Edytuj użytkownika</h2>
+  <h2><?= h($panelTitle) ?></h2>
 
   <form id="userEditForm" method="post" action="user_edit.php" novalidate>
     <input type="hidden" name="id" value="<?= (int)$user['id'] ?>">
@@ -169,7 +175,19 @@ try {
 
     <div class="form-row">
       <label for="nazwa_uzytkownika">Login (nazwa użytkownika)</label>
-      <input id="nazwa_uzytkownika" name="nazwa_uzytkownika" type="text" required maxlength="100" class="form-control" value="<?= h($user['nazwa_uzytkownika']) ?>">
+      <input
+        id="nazwa_uzytkownika"
+        name="nazwa_uzytkownika"
+        type="text"
+        required
+        maxlength="100"
+        class="form-control"
+        value="<?= h($user['nazwa_uzytkownika']) ?>"
+        <?= $canManageAccount ? '' : 'readonly' ?>
+      >
+      <?php if (!$canManageAccount): ?>
+      <small class="hint">Login nie może być zmieniony dla tej roli.</small>
+      <?php endif; ?>
     </div>
 
     <div class="form-row">
@@ -182,6 +200,7 @@ try {
       <input id="email" name="email" type="email" maxlength="255" class="form-control" value="<?= h($user['email']) ?>">
     </div>
 
+    <?php if ($canManageAccount): ?>
     <div class="form-row">
       <label for="rola">Rola</label>
       <select id="rola" name="rola" class="form-control">
@@ -197,8 +216,8 @@ try {
         Wymuś zmianę hasła przy następnym logowaniu
       </label>
     </div>
+    <?php endif; ?>
 
-    <!-- Sekcja: zmiana hasła (opcjonalna) -->
     <fieldset style="margin-top:12px; padding:10px; border:1px solid #e6eef8; border-radius:6px; background:#fbfdff;">
       <legend style="font-weight:600; padding:0 6px;">Ustaw/zmień hasło (opcjonalnie)</legend>
 
@@ -223,7 +242,6 @@ try {
 
   <script>
   (function(){
-    // Klientowa walidacja sekcji hasła i obsługa submit (fallback jeśli globalny submitFormAjax nie istnieje)
     var form = document.getElementById('userEditForm');
     var feedback = document.getElementById('form-feedback');
     var passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;
@@ -236,7 +254,6 @@ try {
     if (!form) return;
 
     form.addEventListener('submit', function(e){
-      // Jeśli globalny handler istnieje, pozwól mu przejąć formularz
       if (typeof submitFormAjax === 'function') return;
 
       e.preventDefault();
@@ -268,9 +285,10 @@ try {
         if (json && json.success) {
           showFeedback(json.message || 'Zapisano.', true);
           setTimeout(function(){
+            var target = (json && json.redirect_url) ? json.redirect_url : 'user_edit.php';
             if (typeof window.closeModal === 'function') window.closeModal();
-            if (typeof window.loadContent === 'function') window.loadContent('users_panel.php');
-            else window.location.href = 'users_panel.php';
+            if (typeof window.loadContent === 'function') window.loadContent(target);
+            else window.location.href = target;
           }, 600);
         } else {
           var text = 'Błąd';

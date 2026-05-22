@@ -2,6 +2,7 @@
 // wypozycz_zapisz.php - Zapis wypożyczenia i generacja linku do pliku protokołu PDF
 require_once 'auth.php';
 require_login();
+require_permission('issue_equipment', 'Brak uprawnień do wydawania sprzętu.');
 require 'polaczenie.php';
 
 header('Content-Type: application/json; charset=utf-8');

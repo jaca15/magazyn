@@ -1,6 +1,7 @@
 <?php
 require_once 'auth.php';
 require_login();
+require_permission('issue_equipment', 'Brak uprawnień do wydawania sprzętu.');
 require 'polaczenie.php';
 
 $id = (int)($_GET['id'] ?? 0);

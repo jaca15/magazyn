@@ -8,6 +8,7 @@
 
 require 'auth.php';
 require_login();
+require_permission('manage_equipment', 'Brak uprawnień do dodawania sprzętu.');
 require 'polaczenie.php';
 
 function h($v) {

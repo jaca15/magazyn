@@ -7,6 +7,7 @@
 
 require 'auth.php';
 require_login();
+require_permission('manage_equipment', 'Brak uprawnień do edycji sprzętu.');
 require 'polaczenie.php';
 
 function h($v) { return htmlspecialchars($v ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }

@@ -9,6 +9,7 @@
 require 'auth.php';
 require_login();
 require 'polaczenie.php';
+$canManageEquipment = ma_uprawnienie('manage_equipment');
 
 function h($v) { return htmlspecialchars($v ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
 
@@ -234,6 +235,8 @@ try {
 
   <div class="form-row panel-actions" style="justify-content:flex-end;">
     <button type="button" class="btn-cancel" onclick="window.closeModal && window.closeModal()">Zamknij</button>
+    <?php if ($canManageEquipment): ?>
     <button type="button" class="btn-save" style="margin-left:8px;" onclick="(function(){ if(typeof window.openModal==='function'){ window.openModal('edytuj_sprzet.php?id=<?= $id ?>'); } else { window.location.href='edytuj_sprzet.php?id=<?= $id ?>'; } })()">Edytuj</button>
+    <?php endif; ?>
   </div>
 </form>
