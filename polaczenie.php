@@ -1,12 +1,17 @@
 <?php
 // polaczenie.php - połączenie z bazą danych (TCP na porcie 3307)
 // Dostosuj user/haslo jeśli potrzeba
-$host = '127.0.0.1';   // użyj 127.0.0.1 zamiast 'localhost' aby wymusić TCP
-$port = 3307;         // ustawiony port
-$baza = '';
-$user = '';
-$haslo = ''; // ustaw hasło
+$host = getenv('DB_HOST') ?: getenv('MYSQL_HOST') ?: '127.0.0.1'; // użyj 127.0.0.1 zamiast 'localhost' aby wymusić TCP
+$port = (int)(getenv('DB_PORT') ?: getenv('MYSQL_PORT') ?: 3307); // ustawiony port
+$baza = getenv('DB_NAME') ?: getenv('MYSQL_DATABASE') ?: '';
+$user = getenv('DB_USER') ?: getenv('MYSQL_USER') ?: '';
+$haslo = getenv('DB_PASSWORD') ?: getenv('MYSQL_PASSWORD') ?: ''; // ustaw hasło
 $charset = 'utf8mb4';
+
+if ($baza === '') {
+    echo "Błąd konfiguracji bazy danych: brak nazwy bazy (DB_NAME/MYSQL_DATABASE).";
+    exit;
+}
 
 $dsn = "mysql:host={$host};port={$port};dbname={$baza};charset={$charset}";
 
