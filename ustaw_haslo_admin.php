@@ -1,19 +1,26 @@
 <?php
 // ustaw_haslo_admin.php - wymusza utworzenie konta 'admin' (graficznie zgodne z logowanie.php)
 require 'polaczenie.php';
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once 'app_settings.php';
 
 function h($v){ return htmlspecialchars($v === null ? '' : $v, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
 
 // Sprawdź, czy istnieje właściwe konto admin
-$stmt = $pdo->prepare("SELECT COUNT(*) AS cnt FROM uzytkownicy WHERE nazwa_uzytkownika = ? AND rola = 'admin'");
-$stmt->execute(['admin']);
-$row = $stmt->fetch();
-if ($row && $row['cnt'] > 0) {
-    // jeśli admin istnieje, przekieruj do logowania
-    header('Location: logowanie.php');
-    exit;
+try {
+    $stmt = $pdo->prepare("SELECT COUNT(*) AS cnt FROM uzytkownicy WHERE nazwa_uzytkownika = ? AND rola = 'admin'");
+    $stmt->execute(['admin']);
+    $row = $stmt->fetch();
+    if ($row && $row['cnt'] > 0) {
+        // jeśli admin istnieje, przekieruj do logowania
+        header('Location: logowanie.php');
+        exit;
+    }
+} catch (Throwable $e) {
+    // brak tabeli lub błąd DB — traktuj jako brak admina, kontynuuj formularz
+    error_log('ustaw_haslo_admin.php: błąd sprawdzania admina: ' . $e->getMessage());
 }
 
 $blad = '';
@@ -52,6 +59,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'nazwa_uzytkownika' => $username,
                 'rola' => 'admin'
             ];
+            $_SESSION['user_id'] = $userId;
+            $_SESSION['nazwa_uzytkownika'] = $username;
+            $_SESSION['rola'] = 'admin';
+            $_SESSION['wymus_zmiany_hasla'] = 0;
             header('Location: index.php');
             exit;
         } catch (Exception $e) {

@@ -27,6 +27,9 @@ try {
     }
 } catch (Throwable $e) {
     error_log('logowanie.php: błąd sprawdzania adminów: ' . $e->getMessage());
+    // Jeśli nie można sprawdzić (np. brak tabeli przy świeżej instalacji) → ustaw hasło admina
+    header('Location: ustaw_haslo_admin.php');
+    exit;
 }
 
 $blad = '';
