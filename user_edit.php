@@ -149,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        $redirectUrl = ($isAdmin && $id !== $currentUserId) ? 'users_panel.php' : 'user_edit.php';
+        $redirectUrl = ($isAdmin && $id !== $currentUserId) ? 'users_panel.php' : ('user_edit.php?id=' . $id);
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode(['success' => true, 'message' => 'Zapisano zmiany.', 'redirect_url' => $redirectUrl]);
         exit;
@@ -183,10 +183,11 @@ $panelTitle = ($isOwnProfile || !$isAdmin) ? 'Mój profil' : 'Edytuj użytkownik
         maxlength="100"
         class="form-control"
         value="<?= h($user['nazwa_uzytkownika']) ?>"
+        <?= $canManageAccount ? '' : 'aria-describedby="login-help"' ?>
         <?= $canManageAccount ? '' : 'readonly' ?>
       >
       <?php if (!$canManageAccount): ?>
-      <small class="hint">Login nie może być zmieniony dla tej roli.</small>
+      <small id="login-help" class="hint">Login nie może być zmieniony dla tej roli.</small>
       <?php endif; ?>
     </div>
 

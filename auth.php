@@ -57,7 +57,7 @@ function ma_uprawnienie(string $permission): bool {
         case 'manage_dictionaries':
             return false;
         case 'edit_own_profile':
-            return in_array($rola, ['magazynier', 'gosc'], true);
+            return in_array($rola, ['admin', 'magazynier', 'gosc'], true);
         default:
             return false;
     }
