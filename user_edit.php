@@ -285,6 +285,7 @@ $panelTitle = ($isOwnProfile || !$isAdmin) ? 'Mój profil' : 'Edytuj użytkownik
       .then(function(json){
         if (json && json.success) {
           showFeedback(json.message || 'Zapisano.', true);
+          if (json.message) alert(json.message);
           setTimeout(function(){
             var target = (json && json.redirect_url) ? json.redirect_url : 'user_edit.php';
             if (typeof window.closeModal === 'function') window.closeModal();
