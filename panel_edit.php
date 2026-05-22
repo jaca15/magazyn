@@ -267,6 +267,7 @@ try {
       .then(function(json){
         if (json && json.success) {
           showFeedback(json.message || 'Zapisano.', true);
+          alert((json && json.message) ? json.message : 'Zapisano.');
           setTimeout(function(){
             if (typeof window.closeModal === 'function') window.closeModal();
             if (typeof window.loadContent === 'function') window.loadContent('users_panel.php');

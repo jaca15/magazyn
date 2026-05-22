@@ -322,8 +322,8 @@ $isAdmin = czy_admin();
 
       if (resp.ok && data && data.success) {
         if (feedback) feedback.innerHTML = '<div class="form-success">' + escapeHtml(data.message || 'Zapisano') + '</div>';
-        if (form && form.id === 'userEditForm' && data.message) {
-          alert(data.message);
+        if (form && form.id === 'userEditForm') {
+          alert(data.message || 'Zapisano.');
         }
         setTimeout(() => {
           if (window.closeModal) window.closeModal();
