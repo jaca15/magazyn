@@ -141,7 +141,7 @@ if ($end - $start + 1 < $visiblePages) {
             <div class="akcje" role="group" aria-label="Akcje">
               <!-- Usunięto przycisk "Podgląd" zgodnie z prośbą -->
               <button type="button" class="btn-akcja edit open-modal" data-url="user_edit.php?id=<?= (int)$r['id'] ?>">Edytuj</button>
-              <button type="button" class="btn-akcja edit open-modal" data-url="ustaw_haslo_admin.php?id=<?= (int)$r['id'] ?>">Reset hasła</button>
+              <button type="button" class="btn-akcja edit open-modal" data-url="user_edit.php?id=<?= (int)$r['id'] ?>">Reset hasła</button>
               <button type="button" class="btn-akcja usun delete" data-id="<?= (int)$r['id'] ?>" data-name="<?= h($displayName) ?>">Usuń</button>
             </div>
           </td>
