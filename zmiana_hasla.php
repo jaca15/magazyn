@@ -17,7 +17,7 @@ $pattern = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/';
 $userId = $_SESSION['user']['id'] ?? $_SESSION['user_id'] ?? null;
 if (!$userId) {
     // Brak sesji poprawnie — przekieruj do logowania
-    header('Location: login.php');
+    header('Location: logowanie.php');
     exit;
 }
 
