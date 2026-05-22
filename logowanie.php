@@ -16,9 +16,10 @@ if (!empty($_SESSION['user'])) {
     exit;
 }
 
-// Jeśli nie ma żadnego admina - przekieruj do ustawienia hasła admin
+// Jeśli nie ma konta admin (login=admin, rola=admin) - przekieruj do ustawienia hasła admin
 try {
-    $stmt = $pdo->query("SELECT COUNT(*) AS cnt FROM uzytkownicy WHERE rola = 'admin'");
+    $stmt = $pdo->prepare("SELECT COUNT(*) AS cnt FROM uzytkownicy WHERE nazwa_uzytkownika = ? AND rola = 'admin'");
+    $stmt->execute(['admin']);
     $row = $stmt->fetch();
     if (!$row || (int)$row['cnt'] === 0) {
         header('Location: ustaw_haslo_admin.php');
