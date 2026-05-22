@@ -131,11 +131,13 @@ $loginDescription = isset($APP['login_description']) ? (string)$APP['login_descr
       font-weight:700;
       font-size:1.35rem;
       margin:0 0 6px 0;
+      text-align:center;
     }
     .tag{
       color:var(--muted);
       font-size:0.95rem;
       margin:0 0 18px 0;
+      text-align:center;
     }
     .illustration-wrap{
       margin:0 0 18px 0;
@@ -154,10 +156,12 @@ $loginDescription = isset($APP['login_description']) ? (string)$APP['login_descr
       font-size:0.92rem;
       line-height:1.5;
       margin:0 0 18px 0;
+      text-align:center;
     }
     h2{
       margin:0 0 14px 0;
       font-size:1.4rem;
+      text-align:center;
     }
     form label{
       display:block;
@@ -199,11 +203,13 @@ $loginDescription = isset($APP['login_description']) ? (string)$APP['login_descr
     .muted{
       color:var(--muted);
       font-size:0.9rem;
+      text-align:center;
     }
     .error{
       color:var(--error);
       margin-bottom:12px;
       font-weight:600;
+      text-align:center;
     }
     .foot{
       margin-top:18px;
