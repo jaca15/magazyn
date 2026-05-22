@@ -1,7 +1,8 @@
 <?php
 // zwrot_zapisz.php - Obsługa zwrotu sprzętu
 require_once 'auth.php';
-require_admin();
+require_login();
+require_permission('return_equipment', 'Brak uprawnień do przyjmowania zwrotów.');
 require 'polaczenie.php';
 
 header('Content-Type: application/json; charset=utf-8');

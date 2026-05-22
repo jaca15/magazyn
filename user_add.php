@@ -96,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div id="user-add-panel" class="content">
   <h2>Dodaj użytkownika</h2>
    
-  <form id="userAddForm" method="post" action="podmiot_add.php" novalidate>
+  <form id="userAddForm" method="post" action="user_add.php" novalidate>
     <div id="form-feedback" class="form-feedback" aria-live="polite">
          <small class="hint">* - pola wymagane.</small>
     </div>

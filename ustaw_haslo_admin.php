@@ -1,18 +1,26 @@
 <?php
 // ustaw_haslo_admin.php - wymusza utworzenie konta 'admin' (graficznie zgodne z logowanie.php)
 require 'polaczenie.php';
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once 'app_settings.php';
 
 function h($v){ return htmlspecialchars($v === null ? '' : $v, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
 
-// Sprawdź, czy istnieje admin
-$stmt = $pdo->query("SELECT COUNT(*) AS cnt FROM uzytkownicy WHERE rola = 'admin'");
-$row = $stmt->fetch();
-if ($row && $row['cnt'] > 0) {
-    // jeśli admin istnieje, przekieruj do logowania
-    header('Location: logowanie.php');
-    exit;
+// Sprawdź, czy istnieje właściwe konto admin
+try {
+    $stmt = $pdo->prepare("SELECT COUNT(*) AS cnt FROM uzytkownicy WHERE nazwa_uzytkownika = ? AND rola = 'admin'");
+    $stmt->execute(['admin']);
+    $row = $stmt->fetch();
+    if ($row && $row['cnt'] > 0) {
+        // jeśli admin istnieje, przekieruj do logowania
+        header('Location: logowanie.php');
+        exit;
+    }
+} catch (Throwable $e) {
+    // brak tabeli lub błąd DB — traktuj jako brak admina, kontynuuj formularz
+    error_log('ustaw_haslo_admin.php: błąd sprawdzania admina: ' . $e->getMessage());
 }
 
 $blad = '';
@@ -31,16 +39,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $hash = password_hash($haslo, PASSWORD_DEFAULT);
         $username = 'admin';
-
-        $stmt = $pdo->prepare("INSERT INTO uzytkownicy (nazwa_uzytkownika, haslo_hash, rola) VALUES (?, ?, 'admin')");
         try {
-            $stmt->execute([$username, $hash]);
+            $findAdminUser = $pdo->prepare("SELECT id FROM uzytkownicy WHERE nazwa_uzytkownika = ? LIMIT 1");
+            $findAdminUser->execute([$username]);
+            $existingAdminUser = $findAdminUser->fetch(PDO::FETCH_ASSOC);
+
+            if ($existingAdminUser) {
+                $userId = (int)$existingAdminUser['id'];
+                $updateAdminUser = $pdo->prepare("UPDATE uzytkownicy SET haslo_hash = ?, rola = 'admin' WHERE id = ?");
+                $updateAdminUser->execute([$hash, $userId]);
+            } else {
+                $insertAdminUser = $pdo->prepare("INSERT INTO uzytkownicy (nazwa_uzytkownika, haslo_hash, rola) VALUES (?, ?, 'admin')");
+                $insertAdminUser->execute([$username, $hash]);
+                $userId = (int)$pdo->lastInsertId();
+            }
 
             $_SESSION['user'] = [
-                'id' => $pdo->lastInsertId(),
+                'id' => $userId,
                 'nazwa_uzytkownika' => $username,
                 'rola' => 'admin'
             ];
+            $_SESSION['user_id'] = $userId;
+            $_SESSION['nazwa_uzytkownika'] = $username;
+            $_SESSION['rola'] = 'admin';
+            $_SESSION['wymus_zmiany_hasla'] = 0;
             header('Location: index.php');
             exit;
         } catch (Exception $e) {
